@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import seaborn as sns
 import math
 import json
@@ -30,16 +31,15 @@ def a(x1,x2):
     else:
         index=d[d.index(maxD)-1]
         result.append(index)
-        
-#        plt.plot([x1,index], [stockPrice[x1+1],maxD], 'r-')
-#        plt.plot([index,x2],[maxD,stockPrice[x2+1]], 'r-')
+
         a(x1,int(index))
         a(int(index),x2)
         
         
 if __name__ =='__main__':
     stockPrice=[]
-    L=0.5
+    stockPrice1=[]
+    L=1
     global result #点集
     result=[]
     
@@ -55,23 +55,22 @@ if __name__ =='__main__':
         data = json.load(f)
 #    for p in data[:]:
 #        stockPrice.append(p['open'])
-    for p in range(0,len(data)):
+
+    for p in range(len(data)-1,-1,-1): #调换顺序，使成为随时间增长变化的曲线
+        stockPrice1.append(data[p]['close'])
+    for p in range(0,len(stockPrice1)):
         stockPrice.append(p)
-        stockPrice.append(data[p]['close'])
+        stockPrice.append(stockPrice1[p])
         
-    stock['close'].plot(legend=True ,figsize=(12,4))
+#    stock['close'].plot(legend=False ,figsize=(12,4)) #原画图
+    plt.gcf().set_size_inches(12,4)
+    plt.plot([stockPrice[i] for i in range(0,len(stockPrice),2)],[stockPrice[i] for i in range(1,len(stockPrice),2)],'b-')
+
     
-    a(0,len(stockPrice)-2)
-    
-#    resultSort=sorted(result,reverse=True)
-#    for i in range(0,10):
-#        X.append(stockPrice[result.index(resultSort[i])]) #时间的值
-#        X.append(resultSort[i])
-    
-    result=[0]+sorted(result)+[len(stockPrice)-1]
+    a(0,int((len(stockPrice)+1)/2))
+    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
     for i in range(0,len(result)-1):
         plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
-    
+
     plt.show()
-    
     
