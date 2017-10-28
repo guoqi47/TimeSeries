@@ -15,8 +15,9 @@ def culDistence(x1,y1,x2,y2,x3,y3):
     dis=abs(A*x3+B*y3+C)/math.sqrt(A*A+B*B)
     return dis
     
-def a(x1,x2):
+def a(x1,x2,L):
     d=[]
+    
     
     for i in range(x1,x2,2):
         d.append(i)
@@ -32,20 +33,41 @@ def a(x1,x2):
         index=d[d.index(maxD)-1]
         result.append(index)
 
-        a(x1,int(index))
-        a(int(index),x2)
+        a(x1,int(index),L)
+        a(int(index),x2,L)
         
+def fun(x1,x2,L):
+    global result
+    result=[]
+    a(x1,x2,L)
+    
+    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
+    # 画图部分
+    for i in range(0,len(result)-1):
+        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
+    plt.show()
+    
+    # 计算盈利率
+    profitRate = 1
+    for i in range(0,len(result)-1):
+        p1=stockPrice[result[i+1]*2+1]
+        p0=stockPrice[result[i]*2+1]
+        if p1-p0>0:
+            profitRate *= (2*p1-p0)*(1-Fee)/p1
+            
+    print(profitRate)
         
 if __name__ =='__main__':
     stockPrice=[]
     stockPrice1=[]
     L=1
-    global result #点集
-    result=[]
+    Fee=0.01 #每笔交易手续费
+#    global result #点集
+#    result=[]
     
     sns.set_style("whitegrid")
     end = datetime.today() #开始时间结束时间，选取最近一年的数据
-    start = datetime(end.year-1,end.month,end.day)
+    start = datetime(end.year,end.month-6,end.day)
     end = str(end)[0:10]
     start = str(start)[0:10]
     
@@ -66,11 +88,23 @@ if __name__ =='__main__':
     plt.gcf().set_size_inches(12,4)
     plt.plot([stockPrice[i] for i in range(0,len(stockPrice),2)],[stockPrice[i] for i in range(1,len(stockPrice),2)],'b-')
 
-    
-    a(0,int((len(stockPrice)+1)/2))
-    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
-    for i in range(0,len(result)-1):
-        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
 
-    plt.show()
+    fun(0,int((len(stockPrice)+1)/2),L)
+    
+#    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
+#    # 画图部分
+#    for i in range(0,len(result)-1):
+#        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
+#    plt.show()
+#    
+#    # 计算盈利率
+#    profitRate = 1
+#    for i in range(0,len(result)-1):
+#        p1=stockPrice[result[i+1]*2+1]
+#        p0=stockPrice[result[i]*2+1]
+#        if p1-p0>0:
+#            profitRate *= (2*p1-p0)*(1-Fee)/p1
+#    print(profitRate)
+
+    
     
