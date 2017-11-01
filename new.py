@@ -18,10 +18,9 @@ def culDistence(x1,y1,x2,y2,x3,y3):
 def a(x1,x2,L):
     d=[]
     
-    
-    for i in range(x1,x2,2):
+    for i in range(x1,x2):
         d.append(i)
-        d.append(culDistence(stockPrice[x1],stockPrice[x1+1],stockPrice[x2],stockPrice[x2+1],stockPrice[i],stockPrice[i+1]))
+        d.append(culDistence(x1,stockPrice[x1*2+1],x2,stockPrice[x2*2+1],i,stockPrice[i*2+1]))
 #    index=d.index(max(d))
     if len(d)==0:
         return
@@ -33,8 +32,8 @@ def a(x1,x2,L):
         index=d[d.index(maxD)-1]
         result.append(index)
 
-        a(x1,int(index),L)
-        a(int(index),x2,L)
+        a(x1,index,L)
+        a(index,x2,L)
         
 def fun(x1,x2,L):
     global result
@@ -60,10 +59,8 @@ def fun(x1,x2,L):
 if __name__ =='__main__':
     stockPrice=[]
     stockPrice1=[]
-    L=1
-    Fee=0.01 #每笔交易手续费
-#    global result #点集
-#    result=[]
+    L=1.5
+    Fee=0.5 #每笔交易手续费
     
     sns.set_style("whitegrid")
     end = datetime.today() #开始时间结束时间，选取最近一年的数据
@@ -85,26 +82,13 @@ if __name__ =='__main__':
         stockPrice.append(stockPrice1[p])
         
 #    stock['close'].plot(legend=False ,figsize=(12,4)) #原画图
-    plt.gcf().set_size_inches(12,4)
+    plt.gcf().set_size_inches(14,4)
     plt.plot([stockPrice[i] for i in range(0,len(stockPrice),2)],[stockPrice[i] for i in range(1,len(stockPrice),2)],'b-')
+#    plt.plot([stockPrice[i] for i in range(0,22,2)],[stockPrice[i] for i in range(1,22,2)],'r-',label="point")
+#    散点图
+#    axes = plt.subplot(111)
+#    type1 = axes.scatter([stockPrice[i] for i in range(0,42,2)],[stockPrice[i] for i in range(1,42,2)], s=20, c='red')
 
+    fun(0,int(len(stockPrice)/2)-1,L)
 
-    fun(0,int((len(stockPrice)+1)/2),L)
-    
-#    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
-#    # 画图部分
-#    for i in range(0,len(result)-1):
-#        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
-#    plt.show()
-#    
-#    # 计算盈利率
-#    profitRate = 1
-#    for i in range(0,len(result)-1):
-#        p1=stockPrice[result[i+1]*2+1]
-#        p0=stockPrice[result[i]*2+1]
-#        if p1-p0>0:
-#            profitRate *= (2*p1-p0)*(1-Fee)/p1
-#    print(profitRate)
-
-    
-    
+   
