@@ -19,11 +19,10 @@ def culDistence(x1,y1,x2,y2,x3,y3):
     
 def a(x1,x2,L):
     d=[]
-    
-    
-    for i in range(x1,x2,2):
+   
+    for i in range(x1,x2):
         d.append(i)
-        d.append(culDistence(stockPrice[x1],stockPrice[x1+1],stockPrice[x2],stockPrice[x2+1],stockPrice[i],stockPrice[i+1]))
+        d.append(culDistence(x1,stockPrice[x1*2+1],x2,stockPrice[x2*2+1],i,stockPrice[i*2+1]))
 #    index=d.index(max(d))
     if len(d)==0:
         return
@@ -35,8 +34,8 @@ def a(x1,x2,L):
         index=d[d.index(maxD)-1]
         result.append(index)
 
-        a(x1,int(index),L)
-        a(int(index),x2,L)
+        a(x1,index,L)
+        a(index,x2,L)
         
 
         
@@ -73,7 +72,9 @@ class Gas():
             p1=stockPrice[result[i+1]*2+1]
             p0=stockPrice[result[i]*2+1]
             if p1-p0>0:
-                profitRate *= (2*p1-p0)*(1-Fee)/p1
+#                profitRate *= (2*p1-p0)*(1-Fee)/p1
+                # 改进计算利润率算法
+                profitRate *= 1+((1-Fee)*p1-(1+Fee)*p0)/((1+Fee)*p0)
                 
         return profitRate
 
@@ -179,8 +180,8 @@ class Gas():
 if __name__ =='__main__':
     stockPrice=[]
     stockPrice1=[]
-    L=1
-    Fee=0.01 #每笔交易手续费
+#    L=1
+    Fee=0.001 #每笔交易手续费
 #    global result #点集
 #    result=[]
     
@@ -207,28 +208,11 @@ if __name__ =='__main__':
 #    plt.gcf().set_size_inches(12,4)
 #    plt.plot([stockPrice[i] for i in range(0,len(stockPrice),2)],[stockPrice[i] for i in range(1,len(stockPrice),2)],'b-')
 
-    
-#    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
-#    # 画图部分
-#    for i in range(0,len(result)-1):
-#        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
-#    plt.show()
-#    
-#    # 计算盈利率
-#    profitRate = 1
-#    for i in range(0,len(result)-1):
-#        p1=stockPrice[result[i+1]*2+1]
-#        p0=stockPrice[result[i]*2+1]
-#        if p1-p0>0:
-#            profitRate *= (2*p1-p0)*(1-Fee)/p1
-#    print(profitRate)
-
     #遗传算法部分
-    generation = 50 # 遗传代数
-    
-    popsize=50 #每代的个体数
-    chrosize=8 #变量编码长度
-    xrangemin=0.1 #变量取值范围
+    generation = 20 # 遗传代数
+    popsize=500 #每代的个体数
+    chrosize=9 #变量编码长度
+    xrangemin=1 #变量取值范围
     xrangemax=5
     #引入Gas类，传入参数：种群大小，编码长度，变量范围
     mainGas =Gas(popsize,chrosize,xrangemin,xrangemax) 
@@ -237,7 +221,7 @@ if __name__ =='__main__':
     for i in range(generation): 
         #在遗传代数内进行迭代
         declist =mainGas.get_declist(pop)#解码
-        fitvalue =mainGas.get_fitness(0,int((len(stockPrice)+1)/2),declist)#适应度函数
+        fitvalue =mainGas.get_fitness(0,int(len(stockPrice)/2)-1,declist)#适应度函数
         #选择适应度函数最高个体
         popbest = pop[fitvalue.index(max(fitvalue))]
         #对popbest进行深复制，以为后面精英选择做准备
@@ -253,7 +237,7 @@ if __name__ =='__main__':
         ################################精英策略前的准备
         #对变异之后的pop，求解最大适应度
         nextdeclist = mainGas.get_declist(pop) 
-        nextfitvalue =mainGas.get_fitness(0,int((len(stockPrice)+1)/2),nextdeclist)     
+        nextfitvalue =mainGas.get_fitness(0,int(len(stockPrice)/2)-1,nextdeclist)     
         nextbestfit = max(nextfitvalue) 
         ################################精英策略
         #比较深复制的个体适应度和变异之后的适应度
@@ -262,7 +246,29 @@ if __name__ =='__main__':
         
     t = [x for x in range(generation)]
     s = pop_best
-    print(max(s))
+    l=''
+    for i in list(popbest)[::-1]:
+        l += str(i)
+    q=xrangemin+int(l,2)*(xrangemax-xrangemin)/(2**chrosize-1)
+    print('最佳阈值:',round(q,2))
+    print('最大获利:',round(max(s),2))
+    p0=stockPrice[1]
+    p1=stockPrice[-1]
+    chiyou = ((1-Fee)*p1-(1+Fee)*p0)/((1+Fee)*p0)
+    print('持有获利:',round(chiyou,2))
+    
+    #画遗传算法图
+    plt.subplot(211)
     plt.plot(t,s)
+    #画分段线性图
+    plt.subplot(212)
+    plt.gcf().set_size_inches(13,10)
+    plt.plot([stockPrice[i] for i in range(0,len(stockPrice),2)],[stockPrice[i] for i in range(1,len(stockPrice),2)],'b-')
+    result=[]
+    a(0,int(len(stockPrice)/2)-1,q)
+    result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
+    for i in range(0,len(result)-1):
+        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
+ 
     plt.show()
     
