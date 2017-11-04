@@ -6,6 +6,7 @@ import math
 import json
 from datetime import datetime
 import tushare as ts
+from matplotlib.pylab import datestr2num
 #import numpy as np
 
 def culDistence(x1,y1,x2,y2,x3,y3):
@@ -43,24 +44,26 @@ def fun(x1,x2,L):
     result=[0]+sorted(result)+[int(len(stockPrice)/2)-1]
     # 画图部分
     for i in range(0,len(result)-1):
-        plt.plot([result[i],result[i+1]], [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
+        plt.plot_date([datestr2num(date1[-result[i]-1]),datestr2num(date1[-result[i+1]-1])],
+#                       [stockPrice[result[i]*2+1],stockPrice[result[i+1]*2+1]], 'r-')
+                        [closePrice[-result[i]-1],closePrice[-result[i+1]-1]], 'r-')
     plt.show()
     
-    # 计算盈利率
     profitRate = 1
     for i in range(0,len(result)-1):
         p1=stockPrice[result[i+1]*2+1]
         p0=stockPrice[result[i]*2+1]
         if p1-p0>0:
-            profitRate *= (2*p1-p0)*(1-Fee)/p1
-            
+#                profitRate *= (2*p1-p0)*(1-Fee)/p1
+            # 改进计算利润率算法
+            profitRate *= 1+((1-Fee)*p1-(1+Fee)*p0)/((1+Fee)*p0)   
     print(profitRate)
         
 if __name__ =='__main__':
     stockPrice=[]
     stockPrice1=[]
-    L=1.5
-    Fee=0.5 #每笔交易手续费
+    L=1
+    Fee=0.01 #每笔交易手续费
     
     sns.set_style("whitegrid")
     end = datetime.today() #开始时间结束时间，选取最近一年的数据
@@ -75,6 +78,12 @@ if __name__ =='__main__':
 #    for p in data[:]:
 #        stockPrice.append(p['open'])
 
+    
+    closePrice=ts.get_hist_data('002253',start,end).close
+    date1=ts.get_hist_data('002253',start,end).index #日期
+
+    date2 = [datestr2num(i) for i in date1] #将日期转为数字进行坐标表示
+
     for p in range(len(data)-1,-1,-1): #调换顺序，使成为随时间增长变化的曲线
         stockPrice1.append(data[p]['close'])
     for p in range(0,len(stockPrice1)):
@@ -82,8 +91,8 @@ if __name__ =='__main__':
         stockPrice.append(stockPrice1[p])
         
 #    stock['close'].plot(legend=False ,figsize=(12,4)) #原画图
-    plt.gcf().set_size_inches(14,4)
-    plt.plot([stockPrice[i] for i in range(0,len(stockPrice),2)],[stockPrice[i] for i in range(1,len(stockPrice),2)],'b-')
+    plt.gcf().set_size_inches(12,4)
+    plt.plot_date(date2,closePrice,'b-')
 #    plt.plot([stockPrice[i] for i in range(0,22,2)],[stockPrice[i] for i in range(1,22,2)],'r-',label="point")
 #    散点图
 #    axes = plt.subplot(111)
