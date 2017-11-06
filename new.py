@@ -75,11 +75,8 @@ if __name__ =='__main__':
     stock.to_json('stock.json',orient='records')#转化为json格式
     with open('stock.json', 'r') as f:
         data = json.load(f)
-#    for p in data[:]:
-#        stockPrice.append(p['open'])
 
-    
-    closePrice=ts.get_hist_data('002253',start,end).close
+    closePrice=ts.get_hist_data('002253',start,end).close #收盘价
     date1=ts.get_hist_data('002253',start,end).index #日期
 
     date2 = [datestr2num(i) for i in date1] #将日期转为数字进行坐标表示
@@ -93,10 +90,6 @@ if __name__ =='__main__':
 #    stock['close'].plot(legend=False ,figsize=(12,4)) #原画图
     plt.gcf().set_size_inches(12,4)
     plt.plot_date(date2,closePrice,'b-')
-#    plt.plot([stockPrice[i] for i in range(0,22,2)],[stockPrice[i] for i in range(1,22,2)],'r-',label="point")
-#    散点图
-#    axes = plt.subplot(111)
-#    type1 = axes.scatter([stockPrice[i] for i in range(0,42,2)],[stockPrice[i] for i in range(1,42,2)], s=20, c='red')
 
     fun(0,int(len(stockPrice)/2)-1,L)
 
