@@ -37,32 +37,40 @@ def cul_KDJ(DM,date,days):
     #要获取的数据在Klist的索引
     index = dateList.index(str(datetime.strptime(date, "%Y-%m-%d"))[:10]) 
     print('股票代码:',DM,'日期：',date)
-    print('K:',round(K[index],2))
-    print('D:',round(D[index],2))
-    print('J:',round(J[index],2))
+    K1=K[index]
+    D1=D[index]
+    J1=J[index]
+    print('K:',round(K1,2))
+    print('D:',round(D1,2))
+    print('J:',round(J1,2))
     
     #买入卖出判断，-1卖出，1买进，0持有
-    if J[index]-D[index]<5: #近金叉或者死叉
-        if J[index-1]>D[index-1]: 
-            print(-1)
-            return -1
-        elif J[index-1]<D[index-1]: 
-            print(1)
-            return 1
-    elif J[index]>D[index]: #要涨，K线总是在中间,故简化
+    if abs(J1-D1)<5: #近金叉或者死叉
+        if abs(J[index-1]>D[index-1])>5: #前一个不是金叉或死叉
+            if J[index-1]>D[index-1]: 
+                print(-1)
+                return -1
+            elif J[index-1]<D[index-1]: 
+                print(1)
+                return 1
+        else:
+            print(0)
+            return 0
+    if J1>D1: #要涨，K线总是在中间,故简化
         print(1)
         return 1
-    elif J[index]<D[index]: #要跌
+    elif J1<D1: #要跌
         print(-1)
         return -1
     else:  #持有
-         print(0)
-         return 0
+        print(0)
+        return 0
+         
   
     
 if __name__=="__main__":
-    #cul_KDJ(DM,date,days,num)
-    #DM:股票代码 date:目标日期 days:周期 num:KDJ均为100的天数
-    cul_KDJ('002253','2017-11-01',9)
+#    #cul_KDJ(DM,date,days,num)
+#    #DM:股票代码 date:目标日期 days:周期 num:KDJ均为100的天数
+    cul_KDJ('002253','2017-09-21',9)
 
     
