@@ -4,13 +4,11 @@ import tushare as ts
 
 def cul_KDJ(DM,date,days):
     days -=1
-    C=[] #周期内每日收盘价
-    L=[] #周期内每日最低价
-    H=[] #周期内每日最高价
-    K=[]
-    D=[]
-    J=[]
+    
+    C,L,H=[],[],[] #周期内每日收盘价,每日最低价,每日最高价
+    K,D,J=[],[],[]
     RSV=[] #股票开盘日起每日RSV
+    threshold=8 #判断金死叉的阈值
     data = ts.get_hist_data(DM)
     dateList = [i for i in data.index][::-1] #日期list
     C = [i for i in data['close'][::-1]] #第n日收盘价
@@ -44,28 +42,47 @@ def cul_KDJ(DM,date,days):
     print('D:',round(D1,2))
     print('J:',round(J1,2))
     
-    #买入卖出判断，-1卖出，1买进，0持有
-    if abs(J1-D1)<5: #近金叉或者死叉
-        if abs(J[index-1]>D[index-1])>5: #前一个不是金叉或死叉
-            if J[index-1]>D[index-1]: 
+    #买入卖出判断，-1看跌，1看涨，0持有
+    if index<len(C)-1:
+        if abs(J1-D1)<threshold: #近金叉或者死叉
+            if J1-D1>threshold: 
+                if J[index-1]-D[index-1]>J1-D1:
+                    if C[index+1]<C[index]:
+                        return -1,1
+                    else:
+                        return -1,0
+                if J[index-1]-D[index-1]<threshold:
+                    if C[index+1]>C[index]:
+                        return 1,1
+                    else:
+                        return 1,0
+                else:
+                    return 0,0        
+            else:
                 print(-1)
-                return -1
-            elif J[index-1]<D[index-1]: 
-                print(1)
-                return 1
-        else:
+                if C[index+1]<C[index]:
+                    return -1,1
+                else:
+                    return -1,0
+                        
+        if J1>D1: #要涨，K线总是在中间,故简化
+            print(1)
+            if C[index+1]>C[index]:
+                return 1,1
+            else:
+                return 1,0
+                        
+        elif J1<D1: #要跌
+            print(-1)
+            if C[index+1]<C[index]:
+                return -1,1
+            else:
+                return -1,0
+                    
+        else:  #持有
             print(0)
-            return 0
-    if J1>D1: #要涨，K线总是在中间,故简化
-        print(1)
-        return 1
-    elif J1<D1: #要跌
-        print(-1)
-        return -1
-    else:  #持有
-        print(0)
-        return 0
-         
+            return 0,0
+    return 0,0
   
     
 if __name__=="__main__":
