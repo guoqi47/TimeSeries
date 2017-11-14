@@ -21,11 +21,23 @@ def cul_MACD(DM,date):
     index = dateList.index(str(datetime.strptime(date, "%Y-%m-%d"))[:10]) 
     print('股票代码:',DM,'日期：',date)
     MACD1=MACD[index]
+    MACD2=MACD[index-1]
     DIFF1=DIFF[index]
     DEA1=DEA[index]
     print('MACD:',round(MACD1,2))
     print('DIFF:',round(DIFF1,2))
     print('DEA:',round(DEA1,2))
+    
+    #买入卖出判断，-1看跌，1看涨，0持有
+    if MACD1<0 and MACD2>0:
+        print(-1)
+        return -1
+    elif MACD1>0 and MACD2<0:
+        print(1)
+        return 1
+    else:
+        print(0)
+        return 0
     
 
     
