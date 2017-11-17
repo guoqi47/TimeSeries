@@ -45,7 +45,7 @@ def cul_KDJ(DM,date,days):
     #买入卖出判断，-1看跌，1看涨，0持有
     if index<len(C)-1:
         if abs(J1-D1)<threshold: #近金叉或者死叉
-            if J1-D1>threshold: 
+            if J1-D1>0: 
                 if J[index-1]-D[index-1]>J1-D1:
                     if C[index+1]<C[index]:
                         return -1,1
@@ -57,7 +57,13 @@ def cul_KDJ(DM,date,days):
                     else:
                         return 1,0
                 else:
-                    return 0,0        
+                    return 0,0   
+            elif J1<D1 and D[index-1]-J[index-1]>threshold: #即将金叉
+                if C[index+1]>C[index]:
+                    return 1,1
+                else:
+                    return 1,0
+                        
             else:
                 print(-1)
                 if C[index+1]<C[index]:
