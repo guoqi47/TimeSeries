@@ -1,17 +1,8 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
 import tushare as ts
-import csv
 
-if __name__=="__main__":
-#    #cul_KDJ(DM,date,days,num)
-#    #DM:股票代码 date:目标日期 days:周期 num:KDJ均为100的天数
-#    cul_KDJ('002253','2017-09-21',9)
-
-#    days -=1
-    days=8
-    DM='002253'
-    date=datetime.today()
+def culFlag(DM,days,cycle=9): 
+    cycle -=1
     C,L,H=[],[],[] #周期内每日收盘价,每日最低价,每日最高价
     K,D,J=[],[],[]
     RSV=[] #股票开盘日起每日RSV
@@ -24,10 +15,10 @@ if __name__=="__main__":
     
     RSV.append((C[0]-L[0])/(H[0]-L[0])*100)
     for i in range(1,len(C)):
-        if i<days:
+        if i<cycle:
             t=0
         else:
-            t=i-days
+            t=i-cycle
         RSV.append((C[i]-min(L[t:i+1]))/(max(H[t:i+1])-min(L[t:i+1]))*100)
     
     for i in range(3):
@@ -39,23 +30,6 @@ if __name__=="__main__":
         D.append(D[i-1]*2/3 + K[i]/3)
         J.append(K[i]*3 - 2*D[i])
     
-    #要获取的数据在Klist的索引
-#    index = dateList.index(str(date)[:10]) 
-#    print('股票代码:',DM,'日期：',date)
-#    K1=K[index]
-#    D1=D[index]
-#    J1=J[index]
-    
-    #写入csv,KDJ
-    headers=['date','K','D','J']
-    rows=[]
-    for i in range(len(dateList)):
-        rows.append({'date':dateList[i],'K':K[i],'D':D[i],'J':J[i]})
-    with open(DM+'.csv','w',newline='') as f:
-        f_csv = csv.DictWriter(f,headers)
-        f_csv.writeheader()
-        f_csv.writerows(rows)
-        
     flag=[]
     for i in range(len(K)):
         K1=K[i]
@@ -87,13 +61,12 @@ if __name__=="__main__":
         else:  #持有
             flag.append(0)
             continue
+    return C[-days:],flag[-days:]
 
-    #写入csv,flag
-    headers=['date','flag']
-    rows=[]
-    for i in range(len(dateList)):
-        rows.append({'date':dateList[i],'flag':flag[i]})
-    with open(DM+'_flag'+'.csv','w',newline='') as f:
-        f_csv = csv.DictWriter(f,headers)
-        f_csv.writeheader()
-        f_csv.writerows(rows)
+if __name__=="__main__":
+#    #cul_KDJ(DM,date,days)
+#    #DM:股票代码 days:返回结果的天数
+    C,Flag = culFlag('002253',500)
+    print(len(C))
+    
+
