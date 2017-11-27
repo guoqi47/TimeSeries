@@ -46,7 +46,7 @@ def fun(x1, x2, L):
     global result
     result = []
     a(x1, x2, L)
-    result = [date2[0]] + sorted(result) + [date2[-1]]
+    result = [int(date2[0])] + sorted(result) + [int(date2[-1])]
     return result
 
 def pieceWise(DM,start1,end1,L=1):
@@ -58,13 +58,10 @@ def pieceWise(DM,start1,end1,L=1):
     date1 = ts.get_hist_data(DM, start, end).index  # 日期
     date1 = date1[::-1]  # 按日期从低到高
     date2 = [datestr2num(i) for i in date1]  # 将日期转为数字进行坐标表示
-    return fun(date2[0], date2[-1], L)
+    # print(date2,len(closePrice))
+    return fun(date2[0], date2[-1], L), closePrice.tolist(), date2
 
 if __name__ == '__main__':
-    # end = datetime.today()  # 开始时间结束时间，选取最近一年的数据
-    # start = datetime(end.year, end.month - 6, end.day)
-    # end = str(end)[0:10]
-    # start = str(start)[0:10]
     pieceWise('002253', '2015-11-01', '2017-11-01', L=1)
 
 
