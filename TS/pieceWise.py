@@ -53,16 +53,16 @@ def pieceWise(DM,start1,end1,L=1):
     global closePrice, date2, start, end
     start = start1
     end = end1
-    closePrice = ts.get_hist_data(DM, start, end).close  # 收盘价
-    closePrice = closePrice[::-1]  # 按日期从低到高
-    date1 = ts.get_hist_data(DM, start, end).index  # 日期
-    date1 = date1[::-1]  # 按日期从低到高
+    data = ts.get_hist_data(DM, start, end)  #一次获取数据
+    closePrice = data.close[::-1]  # 收盘价,按日期从低到高
+    volume = data.volume[::-1]  # 成交量
+    date1 = data.index[::-1]  # 日期
     date2 = [datestr2num(i) for i in date1]  # 将日期转为数字进行坐标表示
     # print(date2,len(closePrice))
-    return fun(date2[0], date2[-1], L), closePrice.tolist(), date2
+    return fun(date2[0], date2[-1], L), closePrice.tolist(), date2, volume
 
 if __name__ == '__main__':
-    pieceWise('002253', '2015-11-01', '2017-11-01', L=1)
+    pieceWise('002253', '2015-10-31', '2017-10-31', L=1)
 
 
 
