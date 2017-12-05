@@ -28,14 +28,16 @@ def dataPlot(result, closePrice, date, volume):
         if indexInClose >= Window - 1:
             x_result.append(indexInClose - Window + 1)  # 先加入窗口的开始值
             y_result.append(closePrice[indexInClose - Window + 1])
-            for n in range(Window):  # volume柱状图的y
-                y_volume.append(volume[indexInClose - Window + 1 + n])
+            # for n in range(Window):  # volume柱状图的y
+            #     y_volume.append(volume[indexInClose - Window + 1 + n])
             for k in range(i - 1, -1, -1):
                 if (result[k] - result[0]) < indexInClose - Window + 1:
                     break
             for j in range(k + 1, i + 1):  # k+1:窗口值后面的第一个拐点的索引
+#                print(j)
                 x_result.append(result[j] - result[0])
-                y_result.append(closePrice[result[j] - result[0]])
+#                print(result[j] - result[0])
+                y_result.append(closePrice[date2.index(result[j])])
             try:
                 ax.lines.remove(lines[0])
                 # ax.lines.remove(bars[0])
