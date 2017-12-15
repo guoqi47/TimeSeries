@@ -1,99 +1,87 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
-import seaborn as sns
 import math
-from datetime import datetime, timedelta
-import tushare as ts
 from matplotlib.pylab import datestr2num
 import csv
-import numpy as np
-import pandas as pd
+import os
 
-def culDistence(x1,y1,x2,y2,x3,y3):
+def culDistence(x1,y1,x2,y2,x3,y3): #计算点（x3,y3）到直线（x1,y1,x2,y2）距离函数
     A=y2-y1
     B=x1-x2
     C=x2*y1-x1*y2
     dis=abs(A*x3+B*y3+C)/math.sqrt(A*A+B*B)
     return dis
     
-def a(x1,x2,L):
-    d=[]
-    x1=int(x1)
-    x2=int(x2)
+def iterate(x1,x2,L,result,dateToNum,closePrice): #迭代函数，
+    # x1,迭代起始横坐标 x2,迭代终止横坐标  L,阈值 
+    # result,拐点横坐标 dateToNum,日期的数字list closePrice,收盘价
+    d=[] #保存索引和点到直线的距离值
+    x1,x2=int(x1),int(x2)
     for i in range(x1,x2):
-        if(i not in date2):
+        if(i not in dateToNum):
             continue
-        d.append(i)
-        start1=datetime.strptime(start, "%Y-%m-%d")
-        t1=str(start1+timedelta(x1-datestr2num(start)))[0:10]
-        t2=str(start1+timedelta(x2-datestr2num(start)))[0:10]
-        ti=str(start1+timedelta(i-datestr2num(start)))[0:10]
+        d.append(i) #添加索引
+        t1=int(dateToNum.index(x1))
+        t2=int(dateToNum.index(x2))
+        ti=int(dateToNum.index(i))
         d.append(culDistence(x1,closePrice[t1],x2,closePrice[t2],
-                                           i,closePrice[ti]))
-#    index=d.index(max(d))
-    if len(d)==0:
+                                           i,closePrice[ti])) #添加距离
+    if len(d)==0: #d为空
         return
-    d1=[d[i] for i in range(1,len(d),2)] #不包含索引的list
-    maxD = max(d1)
-    if maxD<L:
+    d1=[d[i] for i in range(1,len(d),2)] #筛选出来距离值，成为d1
+    maxD = max(d1) #求最大距离
+    if maxD<L: #最大距离小于阈值
         return
     else:
         index=d[d.index(maxD)-1]
         result.append(index)
-
-        a(x1,index,L)
-        a(index,x2,L)
         
-def fun(x1,x2,L):
-    global result
-    result=[]
-    a(x1,x2,L)
+        iterate(x1,index,L,result,dateToNum,closePrice)
+        iterate(index,x2,L,result,dateToNum,closePrice)
+        
+def pieceWise(dateToNum,L,closePrice,code):
+    # dateToNum,日期转换为数字的列表  closePrice,收盘价 code 股票代码
+    result=[] #用来存拐点的横坐标
+    iterate(dateToNum[0],dateToNum[-1],L,result,dateToNum,closePrice)
 #    fileHeader = ["start", "end","duration","slope"]
-    datacsv = open("data.csv","w",newline="")
+    datacsv = open("data_"+code+".csv","w",newline="")
     csvwriter = csv.writer(datacsv,dialect = ("excel"))
-    result=[date2[0]]+sorted(result)+[date2[-1]]
-    # 画图部分
-    start1=datetime.strptime(start, "%Y-%m-%d")
+    result=[dateToNum[0]]+sorted(result)+[dateToNum[-1]] #拐点加起始和终止两点
+    # 画图线性分段图
     for i in range(0,len(result)-1):
-        ii=str(start1+timedelta(result[i]-datestr2num(start)))[0:10] #数字转化为日期
-        
-        ii1=str(start1+timedelta(result[i+1]-datestr2num(start)))[0:10]
-        p0=closePrice[ii]
-        p1=closePrice[ii1]
+        ii=dateToNum.index(result[i]) #当前拐点对应的收盘价在closePrice中的索引
+        ii1=dateToNum.index(result[i+1])#下一个拐点对应的收盘价在closePrice中的索引
+        p0=closePrice[ii] #当前拐点对应的收盘价
+        p1=closePrice[ii1] #下一个拐点对应的收盘价
         plt.plot_date([result[i],result[i+1]],
                         [p0,p1], 'r-')
         #保存为csv格式
-        csvwriter.writerow([ii,ii1,date2.index(result[i+1])-date2.index(result[i]),(p1-p0)/(result[i+1]-result[i])])
-#        print(ii,ii1,date2.index(result[i+1])-date2.index(result[i]),(p1-p0)/(result[i+1]-result[i]))
-        
+        csvwriter.writerow([ii,ii1,dateToNum.index(result[i+1])-dateToNum.index(result[i]),(p1-p0)/(result[i+1]-result[i])])
+    datacsv.close()
+def mainPieceWise(L,path): #分段主函数
+    files = os.listdir(path) #得到文件夹下的所有文件名称  
+    for code in files: #遍历文件夹  
+        closePrice = [] #收盘价
+        date = [] #字符串日期
+        filePath = path+"/"+code+"/"+code+".csv" #csv文件名  
+        with open(filePath) as f:
+            f_csv = csv.reader(f)
+            headers = next(f_csv) # 略过第一行列名
+            for row in f_csv:
+                closePrice.append(row[3])
+                date.append(row[0])
+        os.chdir(path +"/"+code) #更改当前文件夹，进行文件的保存
+        closePrice=[float(i) for i in closePrice][::-1] 
+        date=[str(i)[:10] for i in date][::-1] #字符串日期
+        dateToNum = [datestr2num(i) for i in date] #将日期转为数字进行坐标表示
+        #画原始数据图
+        plt.gcf().set_size_inches(12,4)
+        plt.plot_date(dateToNum,closePrice,'b-')
+        #调用线性分段函数
+        pieceWise(dateToNum,L,closePrice,code)
         
 if __name__ =='__main__':
-    L=1
+    L=1 #阈值
+    path = "D:/PythonCode/TimeSeries/xiaolintie/data" #data文件夹目录  
+    mainPieceWise(L,path)
     
-    sns.set_style("whitegrid")
-    start='2015-10-31'
-    end='2017-10-31'
-
-            
-    data1 = ts.get_h_data('002253', '2014-10-31', '2017-10-31')  # 三年
-    data2 = ts.get_h_data('002253', '2011-10-31', '2014-10-30')  # 两年   
-    
-    data = pd.concat([data1, data2], axis=0)
-    closePrice=data.close[::-1] #收盘价
-#    closePrice2=data2.close[::-1] #收盘价
-#    closePrice=closePrice2+closePrice1
-    date11=data.index[::-1].tolist() #日期
-#    date12=data2.index[::-1].tolist() #日期
-    date11=[str(i)[:10] for i in date11]
-#    date12=[str(i)[:10] for i in date12]
-    
-#    date11 = date12[:-1]+date11
-    global date2
-    date2 = [datestr2num(i) for i in date11] #将日期转为数字进行坐标表示
-
-    plt.gcf().set_size_inches(12,4)
-    plt.plot_date(date2,closePrice,'b-')
-
-    fun(date2[0],date2[-1],L)
-
-   
