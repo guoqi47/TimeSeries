@@ -22,7 +22,8 @@ def drawCandlestick(index):
     ax2.set_xticks([])
     ax2.set_yticks([])
     plt.savefig("img/img" + str(index) + ".jpg")
-    plt.show()
+
+#    plt.show()
 
 def guaidian_result(y):  # 返回拐点的横纵坐标
     guaidian_x = []
@@ -31,18 +32,33 @@ def guaidian_result(y):  # 返回拐点的横纵坐标
             guaidian_x.append(i)
     return guaidian_x
 
+
+# 之前评测标准
+# def culIndex(guaidian_x):
+#     index = []
+#     i = 1
+#     while i < len(guaidian_x) - 2:
+#         if y[guaidian_x[i - 1]] == 1 and guaidian_x[i] - guaidian_x[i - 1] >= 10:
+#             index.append(guaidian_x[i - 1])
+#         elif y[guaidian_x[i - 1]] == 1 and \
+#                 (guaidian_x[i + 1] - guaidian_x[i]) / (guaidian_x[i + 2] - guaidian_x[i - 1]) >= 0.25:
+#             index.append(guaidian_x[i - 1])
+#             i += 2
+#         i += 1
+#     return index
+
+# lujie的方法
 def culIndex(guaidian_x):
-    index = []
+    index, label = [], []
     i = 1
-    while i < len(guaidian_x) - 2:
-        if y[guaidian_x[i - 1]] == 1 and guaidian_x[i] - guaidian_x[i - 1] >= 10:
+    while i < len(guaidian_x):
+        if guaidian_x[i] - guaidian_x[i - 1] >= 10 or \
+                abs(sum(y[guaidian_x[i - 1]:guaidian_x[i - 1] + 10])) >= 4:
             index.append(guaidian_x[i - 1])
-        elif y[guaidian_x[i - 1]] == 1 and \
-                (guaidian_x[i + 1] - guaidian_x[i]) / (guaidian_x[i + 2] - guaidian_x[i - 1]) >= 0.25:
-            index.append(guaidian_x[i - 1])
-            i += 2
+            label.append(y[guaidian_x[i - 1]])
         i += 1
-    return index
+
+    return index, label
 
 
 data = pd.read_csv('sh1.csv')
@@ -53,10 +69,12 @@ low_p = data['low']
 volume = data['volume']
 y = data['y']
 
-guaidian_x = [0]+guaidian_result(y)
-index = culIndex(guaidian_x)
+train_x = y[:2000]
 
-for i in index:
-    if i>=20:
+guaidian_x = guaidian_result(train_x)
+train_x_index, train_y = culIndex(guaidian_x)
+
+
+for i in train_x_index:
+    if i >= 20:
         drawCandlestick(i)
-

@@ -27,10 +27,10 @@ def culIndex(guaidian_x):
 data = pd.read_csv('sh1.csv')
 open_p = data['open']
 high_p = data['high']
-close_p = data['close'][:300]
+close_p = data['close'][:400]
 low_p = data['low']
-volume = data['volume'][:300]
-y = data['y'][:300]
+volume = data['volume'][:400]
+y = data['y'][:400]
 
 guaidian_x = [0]+guaidian_result(y)
 index = culIndex(guaidian_x)
