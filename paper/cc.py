@@ -158,114 +158,118 @@ def fc_op(input_op, name, n_out, p):
 def inference_op(input_op,keep_prob):
     # 初始化参数p列表
     p = []
-    # 第一段卷积的第一个卷积层 卷积核3*3，共64个卷积核（输出通道数），步长1*1
-    # input_op：200*200*3 输出尺寸200*200*64
-    conv1_1 = conv_op(input_op, name="conv1_1", kh=3, kw=3, n_out=64, dh=1,
-                      dw=1, p=p)
 
-    # 第一段卷积的第2个卷积层 卷积核3*3，共64个卷积核（输出通道数），步长1*1
-    # input_op：200*200*64 输出尺寸200*200*64
-    conv1_2 = conv_op(conv1_1, name="conv1_2", kh=3, kw=3, n_out=64, dh=1,
-                      dw=1, p=p)
+    with tf.device('/cpu:0'):
+        # 第一段卷积的第一个卷积层 卷积核3*3，共64个卷积核（输出通道数），步长1*1
+        # input_op：200*200*3 输出尺寸200*200*64
+        conv1_1 = conv_op(input_op, name="conv1_1", kh=3, kw=3, n_out=64, dh=1,
+                          dw=1, p=p)
 
-    # 第一段卷积的pooling层，核2*2，步长2*2
-    # input_op：200*200*64 输出尺寸100*100*64
-    pool1 = mpool_op(conv1_2, name="pool1", kh=2, kw=2, dh=2, dw=2)
+        # 第一段卷积的第2个卷积层 卷积核3*3，共64个卷积核（输出通道数），步长1*1
+        # input_op：200*200*64 输出尺寸200*200*64
+        conv1_2 = conv_op(conv1_1, name="conv1_2", kh=3, kw=3, n_out=64, dh=1,
+                          dw=1, p=p)
 
-    # 第2段卷积的第一个卷积层 卷积核3*3，共128个卷积核（输出通道数），步长1*1
-    # input_op：100*100*64 输出尺寸100*100*128
-    conv2_1 = conv_op(pool1, name="conv2_1", kh=3, kw=3, n_out=128, dh=1,
-                      dw=1, p=p)
+        # 第一段卷积的pooling层，核2*2，步长2*2
+        # input_op：200*200*64 输出尺寸100*100*64
+        pool1 = mpool_op(conv1_2, name="pool1", kh=2, kw=2, dh=2, dw=2)
 
-    # input_op：100*100*128 输出尺寸100*100*128
-    conv2_2 = conv_op(conv2_1, name="conv2_2", kh=3, kw=3, n_out=128, dh=1,
-                      dw=1, p=p)
+        # 第2段卷积的第一个卷积层 卷积核3*3，共128个卷积核（输出通道数），步长1*1
+        # input_op：100*100*64 输出尺寸100*100*128
+        conv2_1 = conv_op(pool1, name="conv2_1", kh=3, kw=3, n_out=128, dh=1,
+                          dw=1, p=p)
 
-    # input_op：100*100*128 输出尺寸50*50*128
-    pool2 = mpool_op(conv2_2, name="pool2", kh=2, kw=2, dh=2, dw=2)
+        # input_op：100*100*128 输出尺寸100*100*128
+        conv2_2 = conv_op(conv2_1, name="conv2_2", kh=3, kw=3, n_out=128, dh=1,
+                          dw=1, p=p)
 
-    # 第3段卷积的第一个卷积层 卷积核3*3，共256个卷积核（输出通道数），步长1*1
-    # input_op：50*50*128 输出尺寸50*50*256
-    conv3_1 = conv_op(pool2, name="conv3_1", kh=3, kw=3, n_out=256, dh=1,
-                      dw=1, p=p)
+        # input_op：100*100*128 输出尺寸50*50*128
+        pool2 = mpool_op(conv2_2, name="pool2", kh=2, kw=2, dh=2, dw=2)
 
-    # input_op：50*50*256 输出尺寸50*50*256
-    conv3_2 = conv_op(conv3_1, name="conv3_2", kh=3, kw=3, n_out=256, dh=1,
-                      dw=1, p=p)
+        # 第3段卷积的第一个卷积层 卷积核3*3，共256个卷积核（输出通道数），步长1*1
+        # input_op：50*50*128 输出尺寸50*50*256
+        conv3_1 = conv_op(pool2, name="conv3_1", kh=3, kw=3, n_out=256, dh=1,
+                          dw=1, p=p)
 
-    # input_op：50*50*256 输出尺寸50*50*256
-    conv3_3 = conv_op(conv3_2, name="conv3_3", kh=3, kw=3, n_out=256, dh=1,
-                      dw=1, p=p)
+        # input_op：50*50*256 输出尺寸50*50*256
+        conv3_2 = conv_op(conv3_1, name="conv3_2", kh=3, kw=3, n_out=256, dh=1,
+                          dw=1, p=p)
 
-    # input_op：50*50*256 输出尺寸25*25*256
-    pool3 = mpool_op(conv3_3, name="pool3", kh=2, kw=2, dh=2, dw=2)
+        # input_op：50*50*256 输出尺寸50*50*256
+        conv3_3 = conv_op(conv3_2, name="conv3_3", kh=3, kw=3, n_out=256, dh=1,
+                          dw=1, p=p)
 
-    # 第3段卷积的第一个卷积层 卷积核3*3，共512个卷积核（输出通道数），步长1*1
-    # input_op：25*25*256 输出尺寸25*25*512
-    conv4_1 = conv_op(pool3, name="conv4_1", kh=3, kw=3, n_out=512, dh=1,
-                      dw=1, p=p)
+        # input_op：50*50*256 输出尺寸25*25*256
+        pool3 = mpool_op(conv3_3, name="pool3", kh=2, kw=2, dh=2, dw=2)
 
-    # input_op：25*25*512 输出尺寸25*25*512
-    conv4_2 = conv_op(conv4_1, name="conv4_2", kh=3, kw=3, n_out=512, dh=1,
-                      dw=1, p=p)
+        # 第3段卷积的第一个卷积层 卷积核3*3，共512个卷积核（输出通道数），步长1*1
+        # input_op：25*25*256 输出尺寸25*25*512
+        conv4_1 = conv_op(pool3, name="conv4_1", kh=3, kw=3, n_out=512, dh=1,
+                          dw=1, p=p)
 
-    # input_op：25*25*512 输出尺寸25*25*512
-    conv4_3 = conv_op(conv4_2, name="conv4_3", kh=3, kw=3, n_out=512, dh=1,
-                      dw=1, p=p)
+        # input_op：25*25*512 输出尺寸25*25*512
+        conv4_2 = conv_op(conv4_1, name="conv4_2", kh=3, kw=3, n_out=512, dh=1,
+                          dw=1, p=p)
 
-    # input_op：25*25*512 输出尺寸12*12*512
-    pool4 = mpool_op(conv4_3, name="pool4", kh=2, kw=2, dh=2, dw=2)
+        # input_op：25*25*512 输出尺寸25*25*512
+        conv4_3 = conv_op(conv4_2, name="conv4_3", kh=3, kw=3, n_out=512, dh=1,
+                          dw=1, p=p)
 
-    # 第5段卷积的第一个卷积层 卷积核3*3，共512个卷积核（输出通道数），步长1*1
-    # input_op：12*12*512 输出尺寸12*12*512
-    conv5_1 = conv_op(pool4, name="conv5_1", kh=3, kw=3, n_out=512, dh=1,
-                      dw=1, p=p)
+        # input_op：25*25*512 输出尺寸12*12*512
+        pool4 = mpool_op(conv4_3, name="pool4", kh=2, kw=2, dh=2, dw=2)
 
-    # input_op：12*12*512 输出尺寸12*12*512
-    conv5_2 = conv_op(conv5_1, name="conv5_2", kh=3, kw=3, n_out=512, dh=1,
-                      dw=1, p=p)
+        # 第5段卷积的第一个卷积层 卷积核3*3，共512个卷积核（输出通道数），步长1*1
+        # input_op：12*12*512 输出尺寸12*12*512
+        conv5_1 = conv_op(pool4, name="conv5_1", kh=3, kw=3, n_out=512, dh=1,
+                          dw=1, p=p)
 
-    # input_op：12*12*512 输出尺寸12*12*512
-    conv5_3 = conv_op(conv5_2, name="conv5_3", kh=3, kw=3, n_out=512, dh=1,
-                      dw=1, p=p)
+        # input_op：12*12*512 输出尺寸12*12*512
+        conv5_2 = conv_op(conv5_1, name="conv5_2", kh=3, kw=3, n_out=512, dh=1,
+                          dw=1, p=p)
 
-    # input_op：12*12*512 输出尺寸6*6*512
-    pool5 = mpool_op(conv5_3, name="pool5", kh=2, kw=2, dh=2, dw=2)
+        # input_op：12*12*512 输出尺寸12*12*512
+        conv5_3 = conv_op(conv5_2, name="conv5_3", kh=3, kw=3, n_out=512, dh=1,
+                          dw=1, p=p)
 
-    shp = pool5.get_shape()
-    flattened_shape = shp[1].value * shp[2].value * shp[3].value
-    # tf.reshape(tensor, shape, name=None) 将tensor变换为参数shape的形式。
-    resh1 = tf.reshape(pool5, [-1, flattened_shape], name="resh1")
+        # input_op：12*12*512 输出尺寸6*6*512
+        pool5 = mpool_op(conv5_3, name="pool5", kh=2, kw=2, dh=2, dw=2)
 
-    # 全连接层，隐藏节点数为4096,后面接一个dropout层，训练时保留率为0.5，预测时为1.0
-    fc6 = fc_op(resh1, name="fc6", n_out=4096, p=p)
-    fc6_drop = tf.nn.dropout(fc6, keep_prob, name="fc6_drop")
+        shp = pool5.get_shape()
+        flattened_shape = shp[1].value * shp[2].value * shp[3].value
+        # tf.reshape(tensor, shape, name=None) 将tensor变换为参数shape的形式。
+        resh1 = tf.reshape(pool5, [-1, flattened_shape], name="resh1")
 
-    # 全连接层，隐藏节点数为4096,后面接一个dropout层，训练时保留率为0.5，预测时为1.0
-    fc7 = fc_op(fc6_drop, name="fc7", n_out=4096, p=p)
-    fc7_drop = tf.nn.dropout(fc7, keep_prob, name="fc7_drop")
+        # 全连接层，隐藏节点数为4096,后面接一个dropout层，训练时保留率为0.5，预测时为1.0
+        fc6 = fc_op(resh1, name="fc6", n_out=4096, p=p)
+        fc6_drop = tf.nn.dropout(fc6, keep_prob, name="fc6_drop")
 
-    # 最后是一个1000个输出节点的全连接层，
-    # 利用softmax输出分类概率，argmax输出概率最大的类别。
-    fc8 = fc_op(fc7_drop, name="fc8", n_out=2, p=p)
-    softmax = tf.nn.softmax(fc8)
-    # predictions = tf.argmax(softmax, 1)
-    # return predictions, softmax, fc8, p
-    return softmax
+        # 全连接层，隐藏节点数为4096,后面接一个dropout层，训练时保留率为0.5，预测时为1.0
+        fc7 = fc_op(fc6_drop, name="fc7", n_out=4096, p=p)
+        fc7_drop = tf.nn.dropout(fc7, keep_prob, name="fc7_drop")
 
-batch_size=8
+        # 最后是一个1000个输出节点的全连接层，
+        # 利用softmax输出分类概率，argmax输出概率最大的类别。
+        fc8 = fc_op(fc7_drop, name="fc8", n_out=2, p=p)
+        softmax = tf.nn.softmax(fc8)
+        predictions = tf.argmax(softmax, 1)
+        # return predictions, softmax, fc8, p
+        return predictions
+
+batch_size=32
 x = tf.placeholder(tf.float32, shape=[None, 200, 200, 3])
 y_ = tf.placeholder(tf.float32, shape=[None, 2])
 predictions = inference_op(x,0.8)
 cross_entropy = tf.losses.softmax_cross_entropy(onehot_labels=y_, logits=predictions)  # compute cost
 train_step = tf.train.AdamOptimizer(1e-6).minimize(cross_entropy)
+accuracy = tf.metrics.accuracy(  # return (acc, update_op), and create 2 local variables
+    labels=tf.argmax(y_, axis=1), predictions=tf.argmax(predictions, axis=1), )[1]
 
 sess = tf.Session()
 init_op = tf.group(tf.global_variables_initializer(),tf.local_variables_initializer())
 sess.run(init_op)
 
 
-for i in range(100):
+for i in range(8000):
     # x_train = batch_X.__next__()
     # y_train = batch_y.__next__()
     b_x = train_x[i * batch_size : (i + 1) * batch_size]
@@ -273,11 +277,11 @@ for i in range(100):
     y_pred, _, loss, = sess.run([predictions, train_step, cross_entropy],
                                 feed_dict={x: b_x, y_: b_y})
     # print(y_pred)
-    # if i % 5 == 0:
-    #     accuracy_, _ = sess.run([accuracy,flat], feed_dict={x: test_x, y_: test_y})
-    #     print('Step:', i, '| train loss: %.4f' % loss, '| test accuracy: %.2f' % accuracy_)
-    #     print(y_pred)
-    #     print("~~~loss: ", loss)
+    if i % 50 == 0:
+        accuracy_, _ = sess.run([accuracy,predictions], feed_dict={x: test_x, y_: test_y})
+        print('Step:', i, '| train loss: %.4f' % loss, '| test accuracy: %.2f' % accuracy_)
+        # print(y_pred)
+        # print("~~~loss: ", loss)
 
 
 
