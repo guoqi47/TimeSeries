@@ -258,11 +258,12 @@ def inference_op(input_op,keep_prob):
 batch_size=32
 x = tf.placeholder(tf.float32, shape=[None, 200, 200, 3])
 y_ = tf.placeholder(tf.float32, shape=[None, 2])
-predictions = inference_op(x,0.8)
+predictions_train = inference_op(x,0.8)
+predictions_test = inference_op(x,1)
 cross_entropy = tf.losses.softmax_cross_entropy(onehot_labels=y_, logits=predictions)  # compute cost
 train_step = tf.train.AdamOptimizer(1e-6).minimize(cross_entropy)
 accuracy = tf.metrics.accuracy(  # return (acc, update_op), and create 2 local variables
-    labels=tf.argmax(y_, axis=1), predictions=tf.argmax(predictions, axis=1), )[1]
+    labels=tf.argmax(y_, axis=1), predictions=tf.argmax(predictions_train, axis=1), )[1]
 
 sess = tf.Session()
 init_op = tf.group(tf.global_variables_initializer(),tf.local_variables_initializer())
@@ -274,11 +275,11 @@ for i in range(8000):
     # y_train = batch_y.__next__()
     b_x = train_x[i * batch_size : (i + 1) * batch_size]
     b_y = train_y[i * batch_size : (i + 1) * batch_size]
-    y_pred, _, loss, = sess.run([predictions, train_step, cross_entropy],
+    y_pred, _, loss, = sess.run([predictions_train, train_step, cross_entropy],
                                 feed_dict={x: b_x, y_: b_y})
     # print(y_pred)
     if i % 50 == 0:
-        accuracy_, _ = sess.run([accuracy,predictions], feed_dict={x: test_x, y_: test_y})
+        accuracy_, _ = sess.run([accuracy,predictions_test], feed_dict={x: test_x, y_: test_y})
         print('Step:', i, '| train loss: %.4f' % loss, '| test accuracy: %.2f' % accuracy_)
         # print(y_pred)
         # print("~~~loss: ", loss)
