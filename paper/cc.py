@@ -80,8 +80,11 @@ low_p = data['low']
 volume = data['volume']
 y = data['y']
 
-train_num = 2000
-train_y = y[20:20+train_num]
+# train_num = 2000
+train_y = y[20:]
+
+data_test = pd.read_csv('sh000300_2018.csv')
+test_y = data['y'][20:]
 # # train set 画图
 path_train = 'img_train_use/'
 train_x = []
@@ -92,12 +95,12 @@ gc.collect()
 #         gc.collect()
 files = os.listdir(path_train)  # 得到文件夹下的所有文件名称
 files.sort(key=lambda x: int(x[:-4]))  # 对文件进行排序读取
-count =0
+count = 0
 for file in files:
     # print(file)
     train_x.append(mpimg.imread(path_train + file))  # 64*64*3
-    count=count+1
-    if count%200==0:
+    count = count + 1
+    if count % 200 == 0:
         gc.collect()
 train_x = numpy.array(train_x)
 train_x = numpy.reshape(train_x, (-1, 200, 200, 3)) / 255
@@ -106,13 +109,13 @@ train_y = one_hot(train_y)
 train_y = numpy.array(train_y).astype(numpy.float32)
 
 # # test set 画图
-testNum = 100
-test_x_index = [i for i in range(train_num, train_num + testNum)]
-test_y = y[20+train_num:20+train_num + testNum]
+# testNum = 100
+# test_x_index = [i for i in range(train_num, train_num + testNum)]
+# test_y = y[20+train_num:20+train_num + testNum]
 #
 path_test = 'img_test/'
 test_x = []
-#for i in test_x_index:
+# for i in test_x_index:
 #    drawCandlestick(i, path_test)
 files = os.listdir(path_test)  # 得到文件夹下的所有文件名称
 files.sort(key=lambda x: int(x[:-4]))  # 对文件进行排序读取
@@ -122,21 +125,24 @@ test_x = numpy.array(test_x)
 test_x = numpy.reshape(test_x, (-1, 200, 200, 3)) / 255
 test_y = one_hot(test_y)
 test_y = numpy.array(test_y).astype(numpy.float32)
+
+
 # batch_X = getbatch_X(train_x, 64)
 # batch_y = getbatch_y(train_y, 64)
 # ------------------------------------------------------------------------------------
 def conv_op(input_op, name, kh, kw, n_out, dh, dw, p):
     n_in = input_op.get_shape()[-1].value
     with tf.name_scope(name) as scope:
-        kernel = tf.get_variable(scope+'w', shape=[kh, kw, n_in, n_out], dtype = tf.float32,
-                                initializer = tf.contrib.layers.xavier_initializer_conv2d())
-        conv = tf.nn.conv2d(input_op, kernel, (1, dh, dw, 1), padding = 'SAME')
-        bias_init_val = tf.constant(0.0, shape = [n_out], dtype = tf.float32)
-        biases = tf.Variable(bias_init_val, trainable = True, name = 'b')
+        kernel = tf.get_variable(scope + 'w', shape=[kh, kw, n_in, n_out], dtype=tf.float32,
+                                 initializer=tf.contrib.layers.xavier_initializer_conv2d())
+        conv = tf.nn.conv2d(input_op, kernel, (1, dh, dw, 1), padding='SAME')
+        bias_init_val = tf.constant(0.0, shape=[n_out], dtype=tf.float32)
+        biases = tf.Variable(bias_init_val, trainable=True, name='b')
         z = tf.nn.bias_add(conv, biases)
-        activation = tf.nn.relu(z, name = scope)
+        activation = tf.nn.relu(z, name=scope)
         p += [kernel, biases]
         return activation
+
 
 def mpool_op(input_op, name, kh, kw, dh, dw):
     return tf.nn.max_pool(input_op,
@@ -145,17 +151,19 @@ def mpool_op(input_op, name, kh, kw, dh, dw):
                           padding='SAME',
                           name=name)
 
+
 def fc_op(input_op, name, n_out, p):
     n_in = input_op.get_shape()[-1].value
     with tf.name_scope(name) as scope:
-        kernel = tf.get_variable(scope+"w", shape=[n_in, n_out], dtype=tf.float32,
+        kernel = tf.get_variable(scope + "w", shape=[n_in, n_out], dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer())
         biases = tf.Variable(tf.constant(0.1, shape=[n_out], dtype=tf.float32), name='b')
-        activation = tf.nn.relu_layer(input_op, kernel, biases, name= scope)
+        activation = tf.nn.relu_layer(input_op, kernel, biases, name=scope)
         p += [kernel, biases]
         return activation
 
-def inference_op(input_op,keep_prob):
+
+def inference_op(input_op, keep_prob):
     # 初始化参数p列表
     p = []
 
@@ -255,31 +263,33 @@ def inference_op(input_op,keep_prob):
         # return predictions, softmax, fc8, p
         return predictions
 
-batch_size=32
+
+batch_size = 32
 x = tf.placeholder(tf.float32, shape=[None, 200, 200, 3])
 y_ = tf.placeholder(tf.float32, shape=[None, 2])
-predictions_train = inference_op(x,0.8)
-predictions_test = inference_op(x,1)
+predictions_train = inference_op(x, 0.8)
+predictions_test = inference_op(x, 1)
 cross_entropy = tf.losses.softmax_cross_entropy(onehot_labels=y_, logits=predictions)  # compute cost
 train_step = tf.train.AdamOptimizer(1e-6).minimize(cross_entropy)
 accuracy = tf.metrics.accuracy(  # return (acc, update_op), and create 2 local variables
     labels=tf.argmax(y_, axis=1), predictions=tf.argmax(predictions_train, axis=1), )[1]
 
 sess = tf.Session()
-init_op = tf.group(tf.global_variables_initializer(),tf.local_variables_initializer())
+init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
 sess.run(init_op)
-
 
 for i in range(8000):
     # x_train = batch_X.__next__()
     # y_train = batch_y.__next__()
-    b_x = train_x[i * batch_size : (i + 1) * batch_size]
-    b_y = train_y[i * batch_size : (i + 1) * batch_size]
+    if (i + 1) * batch_size > len(train_x):
+        i = 0
+    b_x = train_x[i * batch_size: (i + 1) * batch_size]
+    b_y = train_y[i * batch_size: (i + 1) * batch_size]
     y_pred, _, loss, = sess.run([predictions_train, train_step, cross_entropy],
                                 feed_dict={x: b_x, y_: b_y})
     # print(y_pred)
     if i % 50 == 0:
-        accuracy_, _ = sess.run([accuracy,predictions_test], feed_dict={x: test_x, y_: test_y})
+        accuracy_, _ = sess.run([accuracy, predictions_test], feed_dict={x: test_x, y_: test_y})
         print('Step:', i, '| train loss: %.4f' % loss, '| test accuracy: %.2f' % accuracy_)
         # print(y_pred)
         # print("~~~loss: ", loss)
