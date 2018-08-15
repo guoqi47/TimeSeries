@@ -73,11 +73,11 @@ def one_hot(train_y):
 
 
 data = pd.read_csv('train1.csv')
-open_p = data['open']
-high_p = data['high']
-close_p = data['close']
-low_p = data['low']
-volume = data['volume']
+# open_p = data['open']
+# high_p = data['high']
+# close_p = data['close']
+# low_p = data['low']
+# volume = data['volume']
 y = data['y']
 train_y = y[20:]
 
