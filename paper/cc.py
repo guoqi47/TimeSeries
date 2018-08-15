@@ -79,12 +79,16 @@ close_p = data['close']
 low_p = data['low']
 volume = data['volume']
 y = data['y']
-
-# train_num = 2000
 train_y = y[20:]
 
-data_test = pd.read_csv('sh000300_2018.csv')
+# cv label
+data_test = pd.read_csv('cv.csv')
+cv_y = data['y'][20:]
+
+# test label
+data_test = pd.read_csv('test.csv')
 test_y = data['y'][20:]
+
 # # train set 画图
 path_train = 'img_train_use/'
 train_x = []
@@ -108,11 +112,24 @@ train_x = numpy.reshape(train_x, (-1, 200, 200, 3)) / 255
 train_y = one_hot(train_y)
 train_y = numpy.array(train_y).astype(numpy.float32)
 
+# # cvset 画图
+path_cv = 'img_cv/'
+cv_x = []
+# for i in cv_x_index:
+#    drawCandlestick(i, path_cv)
+files = os.listdir(path_cv)  # 得到文件夹下的所有文件名称
+files.sort(key=lambda x: int(x[:-4]))  # 对文件进行排序读取
+for file in files:
+    cv_x.append(mpimg.imread(path_cv + file))  # 64*64*3
+cv_x = numpy.array(cv_x)
+cv_x = numpy.reshape(cv_x, (-1, 200, 200, 3)) / 255
+cv_y = one_hot(cv_y)
+cv_y = numpy.array(cv_y).astype(numpy.float32)
+
 # # test set 画图
 # testNum = 100
 # test_x_index = [i for i in range(train_num, train_num + testNum)]
 # test_y = y[20+train_num:20+train_num + testNum]
-#
 path_test = 'img_test/'
 test_x = []
 # for i in test_x_index:
@@ -268,6 +285,7 @@ batch_size = 32
 x = tf.placeholder(tf.float32, shape=[None, 200, 200, 3])
 y_ = tf.placeholder(tf.float32, shape=[None, 2])
 predictions_train = inference_op(x, 0.8)
+predictions_cv = inference_op(x, 1)
 predictions_test = inference_op(x, 1)
 cross_entropy = tf.losses.softmax_cross_entropy(onehot_labels=y_, logits=predictions)  # compute cost
 train_step = tf.train.AdamOptimizer(1e-6).minimize(cross_entropy)
@@ -287,9 +305,11 @@ for i in range(8000):
     b_y = train_y[i * batch_size: (i + 1) * batch_size]
     y_pred, _, loss, = sess.run([predictions_train, train_step, cross_entropy],
                                 feed_dict={x: b_x, y_: b_y})
-    # print(y_pred)
     if i % 50 == 0:
-        accuracy_, _ = sess.run([accuracy, predictions_test], feed_dict={x: test_x, y_: test_y})
-        print('Step:', i, '| train loss: %.4f' % loss, '| test accuracy: %.2f' % accuracy_)
-        # print(y_pred)
-        # print("~~~loss: ", loss)
+        accuracy_, _ = sess.run([accuracy, predictions_cv], feed_dict={x: cv_x, y_: cv_y})
+        print('Step:', i, '| train loss: %.4f' % loss, '| cv accuracy: %.2f' % accuracy_)
+    # if i % 50 == 0:
+    #     accuracy_, _ = sess.run([accuracy, predictions_test], feed_dict={x: test_x, y_: test_y})
+    #     print('Step:', i, '| train loss: %.4f' % loss, '| test accuracy: %.2f' % accuracy_)
+    # print(y_pred)
+    # print("~~~loss: ", loss)
